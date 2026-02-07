@@ -50,13 +50,22 @@ const touched = reactive({
 
 const errors = computed(() => ({
   nombre: form.nombre.trim() === "",
-  edad: form.edad === null || form.edad < 0 || form.edad > 120,
+  edad: form.edad === null || !Number.isInteger(form.edad) || form.edad < 0 || form.edad > 120,
   intereses: form.intereses.length === 0
 }))
 
 /* const handleSubmit = () => {
   if (!isFormValid.value) return
   console.log("Formulario válido:", form)
+} */
+/* const handleSubmit = () => {
+  touched.nombre = true
+  touched.edad = true
+  touched.intereses = true
+
+  if (!isFormValid.value) return
+
+  console.log("Formulario enviado", form)
 } */
 const handleSubmit = () => {
   touched.nombre = true
@@ -65,7 +74,22 @@ const handleSubmit = () => {
 
   if (!isFormValid.value) return
 
-  console.log("Formulario enviado", form)
+  alert("Formulario enviado ✅")
+
+  resetForm()
+}
+
+const resetForm = () => {
+  form.nombre = ""
+  form.edad = null
+  form.biografia = ""
+  form.nivel = ""
+  form.intereses = []
+  form.pais = null
+  form.tecnologias = []
+  touched.nombre = false
+  touched.edad = false
+  touched.intereses = false
 }
 </script>
 
@@ -84,7 +108,10 @@ const handleSubmit = () => {
       <div class="form-group">
         <label for="edad">Edad:</label>
         <input id="edad" type="number" v-model.number="form.edad" min="0" max="120" @blur="touched.edad = true"
-          :class="{ error: touched.edad && errors.edad }">
+          :class="{ error: touched.edad && errors.edad }" required>
+        <small v-if="touched.edad && errors.edad">
+          Tu edad debe ser un número entre 0 y 120
+        </small>
       </div>
       <div class="form-group">
         <label for="biografia"> Biografía:</label>
@@ -120,6 +147,9 @@ const handleSubmit = () => {
             Libros
           </li>
         </ul>
+        <small v-if="touched.intereses && errors.intereses">
+          Debes elegir al menos 1 interés
+        </small>
       </div>
       <div class="form-group">
         <label for="pais">País:</label>
@@ -188,7 +218,7 @@ form {
   padding: 1em;
   border: 2px solid #424242;
   box-shadow: 1px 1px 2px black;
-  background-color: rgb(230, 226, 222);
+  background-color: rgb(248, 247, 245);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -237,19 +267,42 @@ button {
   padding: 0.5em 1em;
   border: none;
   border-radius: 5px;
-  background-color: rgb(223, 172, 137);
   margin-block: 1em;
   font-size: 1.1rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: #424242;
+  transition: all 0.2s ease;  
+}
+
+/* Estado activo */
+button:not(:disabled) {
+  background-color: #42b883;
+  color: white;
+}
+
+button:not(:disabled):hover {
+  background-color: #369f6e;
+}
+
+/* Estado deshabilitado */
+button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+button:active{
+  background-color: #0a683c;
+  transform: scale(1.1);
 }
 
 .error {
   border: 2px solid #e74c3c;
   background-color: #fff5f5;
 }
-small{
+
+small {
   color: #e74c3c;
 }
 
