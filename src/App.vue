@@ -11,8 +11,11 @@ const form = reactive({
   intereses: [],
   pais: null,
   tecnologias: []
-
 })
+
+/* en país uso null en lugar de {} para el objeto, ya que {}
+es truthy y pasa la validación aunque no se seleccione nada, 
+devolviendo undefined. */
 
 const paises = [
   { code: "CL", name: "Chile" },
@@ -32,6 +35,8 @@ const tecnologiasDisponibles = [
 const MAX_BIO = 200
 const bioLength = computed(() => form.biografia.length)
 
+//validación para el formulario
+
 const isFormValid = computed(() => {
   return (
     form.nombre.trim() !== "" &&
@@ -41,6 +46,10 @@ const isFormValid = computed(() => {
     form.intereses.length >= 1
   )
 })
+
+/* esta constante evita que el formulario presente errores al 
+comienzo (nombre vacío, edad vacía, ningún interés seleccionado,
+y el error solo aparezca una vez que el campo ha sido 'tocado') */
 
 const touched = reactive({
   nombre: false,
@@ -54,30 +63,19 @@ const errors = computed(() => ({
   intereses: form.intereses.length === 0
 }))
 
-/* const handleSubmit = () => {
-  if (!isFormValid.value) return
-  console.log("Formulario válido:", form)
-} */
-/* const handleSubmit = () => {
-  touched.nombre = true
-  touched.edad = true
-  touched.intereses = true
-
-  if (!isFormValid.value) return
-
-  console.log("Formulario enviado", form)
-} */
 const handleSubmit = () => {
   touched.nombre = true
   touched.edad = true
   touched.intereses = true
 
   if (!isFormValid.value) return
-
   alert("Formulario enviado ✅")
-
   resetForm()
 }
+
+/* al usar reactive() no puedo reasignar el objeto completo, 
+por lo que para limpiar el formulario una vez enviado, debo
+reasignar propiedad por propiedad */
 
 const resetForm = () => {
   form.nombre = ""
@@ -95,110 +93,112 @@ const resetForm = () => {
 
 <template>
   <h1>Formulario</h1>
-  <section class="formulario">
-    <form @submit.prevent="handleSubmit()">
-      <div class="form-group">
-        <label for="nombre">Nombre:</label>
-        <input id="nombre" type="text" v-model.trim='form.nombre' @blur="touched.nombre = true"
-          :class="{ error: touched.nombre && errors.nombre }" required>
-        <small v-if="touched.nombre && errors.nombre">
-          El nombre es obligatorio
-        </small>
-      </div>
-      <div class="form-group">
-        <label for="edad">Edad:</label>
-        <input id="edad" type="number" v-model.number="form.edad" min="0" max="120" @blur="touched.edad = true"
-          :class="{ error: touched.edad && errors.edad }" required>
-        <small v-if="touched.edad && errors.edad">
-          Tu edad debe ser un número entre 0 y 120
-        </small>
-      </div>
-      <div class="form-group">
-        <label for="biografia"> Biografía:</label>
-        <textarea id="biografia" v-model.lazy="form.biografia"></textarea>
-        <p class="counter">{{ bioLength }} / {{ MAX_BIO }} caracteres</p>
-      </div>
+  <div class="container">
 
-      <div class="form-group">
-        <p>Nivel de programación</p>
-        <ul>
-          <li><input type="radio" name="nivel" :value="'Trainee'" v-model="form.nivel">Trainee</li>
-          <li><input type="radio" name="nivel" :value="'Junior'" v-model="form.nivel">Junior</li>
-          <li><input type="radio" name="nivel" :value="'Semi-senior'" v-model="form.nivel">Semi-senior</li>
-          <li><input type="radio" name="nivel" :value="'Senior'" v-model="form.nivel">Senior</li>
-        </ul>
-      </div>
-      <div class="form-group">
-        <p>Intereses</p>
-        <ul @change="touched.intereses = true" :class="{ error: touched.intereses && errors.intereses }">
-          <li><input type="checkbox" name="intereses" :value="'Deportes'" v-model="form.intereses">
-            Deportes
-          </li>
-          <li><input type="checkbox" name="intereses" :value="'Cine'" v-model="form.intereses">
-            Cine
-          </li>
-          <li><input type="checkbox" name="intereses" :value="'Música'" v-model="form.intereses">
-            Música
-          </li>
-          <li><input type="checkbox" name="intereses" :value="'Naturaleza'" v-model="form.intereses">
-            Naturaleza
-          </li>
-          <li><input type="checkbox" name="intereses" :value="'Libros'" v-model="form.intereses">
-            Libros
-          </li>
-        </ul>
-        <small v-if="touched.intereses && errors.intereses">
-          Debes elegir al menos 1 interés
-        </small>
-      </div>
-      <div class="form-group">
-        <label for="pais">País:</label>
-        <select id="pais" v-model="form.pais">
-          <option disabled :value="null">Selecciona un país</option>
-          <option v-for="(pais) in paises" :key="pais.code" :value="pais">
-            {{ pais.name }}
-          </option>
-        </select>
-      </div>
+    <section class="formulario">
+      <form @submit.prevent="handleSubmit()">
+        <div class="form-group">
+          <label for="nombre"><strong>Nombre:</strong></label>
+          <input id="nombre" type="text" v-model.trim='form.nombre' @blur="touched.nombre = true"
+            :class="{ error: touched.nombre && errors.nombre }" required>
+          <small v-if="touched.nombre && errors.nombre">
+            El nombre es obligatorio
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="edad"><strong>Edad:</strong></label>
+          <input id="edad" type="number" v-model.number="form.edad" min="0" max="120" @blur="touched.edad = true"
+            :class="{ error: touched.edad && errors.edad }" required>
+          <small v-if="touched.edad && errors.edad">
+            Tu edad debe ser un número entre 0 y 120
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="biografia"><strong>Biografía:</strong></label>
+          <textarea id="biografia" v-model.lazy="form.biografia" rows="5"></textarea>
+          <p class="counter">{{ bioLength }} / {{ MAX_BIO }} caracteres</p>
+        </div>
 
-      <div class="form-group">
-        <label for="tech">Tecnologías:</label>
+        <div class="form-group">
+          <p><strong>Nivel de programación</strong></p>
+          <ul>
+            <li><input type="radio" name="nivel" :value="'Trainee'" v-model="form.nivel">Trainee</li>
+            <li><input type="radio" name="nivel" :value="'Junior'" v-model="form.nivel">Junior</li>
+            <li><input type="radio" name="nivel" :value="'Semi-senior'" v-model="form.nivel">Semi-senior</li>
+            <li><input type="radio" name="nivel" :value="'Senior'" v-model="form.nivel">Senior</li>
+          </ul>
+        </div>
+        <div class="form-group">
+          <p><strong>Intereses</strong></p>
+          <ul @change="touched.intereses = true" :class="{ error: touched.intereses && errors.intereses }">
+            <li><input type="checkbox" name="intereses" :value="'Deportes'" v-model="form.intereses">
+              Deportes
+            </li>
+            <li><input type="checkbox" name="intereses" :value="'Cine'" v-model="form.intereses">
+              Cine
+            </li>
+            <li><input type="checkbox" name="intereses" :value="'Música'" v-model="form.intereses">
+              Música
+            </li>
+            <li><input type="checkbox" name="intereses" :value="'Naturaleza'" v-model="form.intereses">
+              Naturaleza
+            </li>
+            <li><input type="checkbox" name="intereses" :value="'Libros'" v-model="form.intereses">
+              Libros
+            </li>
+          </ul>
+          <small v-if="touched.intereses && errors.intereses">
+            Debes elegir al menos 1 interés
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="pais"><strong>País:</strong></label>
+          <select id="pais" v-model="form.pais">
+            <option disabled :value="null">Selecciona un país</option>
+            <option v-for="(pais) in paises" :key="pais.code" :value="pais">
+              {{ pais.name }}
+            </option>
+          </select>
+        </div>
 
-        <select id="tech" v-model="form.tecnologias" multiple>
-          <option v-for="(tech, index) in tecnologiasDisponibles" :key="index" :value="tech">
-            {{ tech }}
-          </option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="tech"><strong>Tecnologías:</strong></label>
 
-      <button type="submit" :disabled="!isFormValid">Enviar</button>
+          <select id="tech" v-model="form.tecnologias" multiple>
+            <option v-for="(tech, index) in tecnologiasDisponibles" :key="index" :value="tech">
+              {{ tech }}
+            </option>
+          </select>
+        </div>
 
-    </form>
-  </section>
+        <button type="submit" :disabled="!isFormValid">Enviar</button>
 
-  <section class="datos">
-    <h2>Datos obtenidos</h2>
-    <p>Nombre: {{ form.nombre }}</p>
-    <p>Edad: {{ form.edad }}</p>
-    <p>Biografía: {{ form.biografia }}</p>
-    <p>Nivel: {{ form.nivel }}</p>
-    <p>Intereses: </p>
-    <ul>
-      <li v-for="(interes, index) in form.intereses" :key="index">{{ interes }}</li>
-    </ul>
-    <p v-if="form.pais">
-      País:
-      {{ form.pais.name }} ({{ form.pais.code }})
-    </p>
-    <p>Tecnologías:</p>
-    <ul>
-      <li v-for="tech in form.tecnologias" :key="tech">
-        {{ tech }}
-      </li>
-    </ul>
+      </form>
+    </section>
 
-  </section>
+    <section class="datos">
+      <h2>Datos obtenidos</h2>
+      <p><strong>Nombre:</strong> {{ form.nombre }}</p>
+      <p><strong>Edad:</strong> {{ form.edad }}</p>
+      <p class="biografia"><strong>Biografía:</strong> {{ form.biografia }}</p>
+      <p><strong>Nivel:</strong> {{ form.nivel }}</p>
+      <p><strong>Intereses:</strong> </p>
+      <ul class="datos-lista">
+        <li v-for="(interes, index) in form.intereses" :key="index">{{ interes }}</li>
+      </ul>
+      <p v-if="form.pais">
+        <strong>País:</strong>
+        {{ form.pais.name }} ({{ form.pais.code }})
+      </p>
+      <p><strong>Tecnologías:</strong></p>
+      <ul class="datos-lista">
+        <li v-for="tech in form.tecnologias" :key="tech">
+          {{ tech }}
+        </li>
+      </ul>
 
+    </section>
+  </div>
 </template>
 
 <style>
@@ -207,14 +207,28 @@ h1 {
   text-align: center;
 }
 
-.formulario {
-  width: 90%;
-  margin: 0 auto;
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+}
+
+@media (min-width: 800px) {
+  .container {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.formulario,
+.datos {
+  padding: 1em;
+
 }
 
 form {
-  max-width: 600px;
-  margin: 0 auto;
+  /* max-width: 500px;
+  margin: 0 auto; */
   padding: 1em;
   border: 2px solid #424242;
   box-shadow: 1px 1px 2px black;
@@ -245,6 +259,9 @@ label {
   font-weight: 400;
   font-size: 0.9rem;
 }
+input[type="text"], [type="number"], textarea{
+  width: 100%;
+}
 
 input,
 select,
@@ -263,6 +280,11 @@ ul {
   list-style-type: none;
 }
 
+.datos-lista{
+  list-style-type: square;
+  margin-inline-start: 1.5em;
+}
+
 button {
   padding: 0.5em 1em;
   border: none;
@@ -271,7 +293,7 @@ button {
   font-size: 1.1rem;
   font-weight: 600;
   text-transform: uppercase;
-  transition: all 0.2s ease;  
+  transition: all 0.2s ease;
 }
 
 /* Estado activo */
@@ -292,7 +314,7 @@ button:disabled {
   opacity: 0.7;
 }
 
-button:active{
+button:active {
   background-color: #0a683c;
   transform: scale(1.1);
 }
@@ -307,7 +329,15 @@ small {
 }
 
 .datos {
-  max-width: 600px;
-  margin: 1em auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 500px;
+}
+
+.biografia {
+  max-width: 400px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 </style>
